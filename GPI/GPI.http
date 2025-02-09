@@ -1,0 +1,6 @@
+@GPI_HostAddress = http://localhost:5234
+
+GET {{GPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
