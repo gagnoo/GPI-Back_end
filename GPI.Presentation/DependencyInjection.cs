@@ -1,4 +1,5 @@
 using System.Text;
+using GPI.Presentation.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
@@ -13,22 +14,45 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        _ = services.AddSignalR();
+
         _ = services.AddControllers();
         _ = AddAuthorization(services, configuration);
         _ = services.AddAuthorization();
-        
+        _ = AddCors(services);
+
+        _ = services.AddHostedService<UpdateCompanyPricesBackgroundService>();
+
         return services;
+    }
+
+    private static IServiceCollection AddCors(IServiceCollection services)
+    {
+        return services.AddCors(cors =>
+        {
+            cors.AddPolicy("Default", corsPolicyBuilder =>
+            {
+                corsPolicyBuilder.WithOrigins("http://localhost:4200")
+                    .AllowCredentials()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
     }
 
     private static IServiceCollection AddAuthorization(
         IServiceCollection services,
         IConfiguration configuration)
     {
-        string issuer = configuration["JWT:Issuer"]!;
-        string audience = configuration["JWT:Audience"]!;
-        string key = configuration["JWT:Key"]!;
+        string issuer = configuration["JwtSettings:Issuer"]!;
+        string audience = configuration["JwtSettings:Audience"]!;
+        string key = configuration["JwtSettings:Key"]!;
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(config =>
             {
                 config.TokenValidationParameters = new TokenValidationParameters()
@@ -39,6 +63,7 @@ public static class DependencyInjection
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = issuer,
                     ValidAudience = audience,
+                    RequireExpirationTime = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
                 };
             });

@@ -13,7 +13,7 @@ public class AuthController(
     ISender sender,
     ITokenService tokenService) : ControllerBase
 {
-    [HttpPost("auth")]
+    [HttpPost("authorize")]
     public async Task<ActionResult<BaseApiResponse<string>>> Auth(
         [FromBody] AuthRequestModel request,
         CancellationToken cancellationToken = default)

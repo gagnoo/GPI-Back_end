@@ -4,8 +4,8 @@ namespace GPI.Presentation.Models.ApiResponses;
 
 public class SuccessApiServiceResponse<T> : BaseApiResponse<T>
 {
-    public SuccessApiServiceResponse(T data)
-        : base(data)
+    public SuccessApiServiceResponse(T data, string? message = null)
+        : base(data, message)
     {
         Data = data;
         Success = true;
